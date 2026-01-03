@@ -56,8 +56,7 @@ app.get('/', (req, res) => {
       videoUpload: true,
       realTimeUpdates: true,
       processing: true
-    },
-    testPage: 'http://localhost:5000/test'
+    }
   });
 });
 
@@ -69,8 +68,7 @@ app.get('/api', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       videos: '/api/videos',
-      health: '/api/health',
-      test: '/test'
+      health: '/api/health'
     },
     websocket: {
       url: `ws://localhost:${process.env.PORT || 5000}`,
