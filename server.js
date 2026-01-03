@@ -1,8 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import mongoose from 'mongoose';
+import connectDB from './config/database.js';
 
 dotenv.config();
+
+connectDB();
 
 const app = express();
 const httpServer = createServer(app);
@@ -31,7 +35,8 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
