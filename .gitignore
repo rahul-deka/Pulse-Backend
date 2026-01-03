@@ -11,6 +11,7 @@ yarn.lock
 # Upload directories
 uploads/
 temp/
+models/testModels.js
 
 # Logs
 logs/
