@@ -10,84 +10,49 @@ const videoSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Video title is required'],
-    trim: true,
-    maxlength: [200, 'Title cannot exceed 200 characters']
+    trim: true
   },
   filename: {
     type: String,
-    required: [true, 'Filename is required'],
-    trim: true
+    required: [true, 'Filename is required']
   },
-  filepath: {
+  filePath: {
     type: String,
     required: [true, 'File path is required']
   },
   size: {
     type: Number,
-    required: [true, 'File size is required'],
-    min: [0, 'File size cannot be negative']
+    required: [true, 'File size is required']
   },
-  duration: {
-    type: Number,
-    default: 0,
-    min: [0, 'Duration cannot be negative']
-  },
-  status: {
+  mimeType: {
     type: String,
-    enum: {
-      values: ['uploading', 'processing', 'safe', 'flagged', 'failed'],
-      message: 'Invalid status value'
-    },
-    default: 'uploading',
-    index: true
+    required: [true, 'MIME type is required']
   },
-  processingProgress: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100
+  processingStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'completed', 'failed'],
+    default: 'pending'
   },
-  sensitivityScore: {
-    type: Number,
-    default: null,
-    min: 0,
-    max: 100
+  sensitivityStatus: {
+    type: String,
+    enum: ['safe', 'flagged', 'pending'],
+    default: 'pending'
   },
   uploadedAt: {
     type: Date,
     default: Date.now
   },
   processedAt: {
-    type: Date,
-    default: null
+    type: Date
   }
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
-// Compound index for efficient queries and sorting
-videoSchema.index({ userId: 1, status: 1 });
+// Indexes for efficient querying
 videoSchema.index({ userId: 1, uploadedAt: -1 });
-
-videoSchema.statics.findByUser = function(userId, filters = {}) {
-  const query = { userId, ...filters };
-  return this.find(query).sort({ uploadedAt: -1 });
-};
-
-videoSchema.statics.findByStatus = function(userId, status) {
-  return this.find({ userId, status }).sort({ uploadedAt: -1 });
-};
-
-videoSchema.methods.updateProgress = async function(progress, status = null) {
-  this.processingProgress = progress;
-  if (status) {
-    this.status = status;
-  }
-  if (progress === 100 && !this.processedAt) {
-    this.processedAt = new Date();
-  }
-  return await this.save();
-};
+videoSchema.index({ processingStatus: 1 });
 
 const Video = mongoose.model('Video', videoSchema);
+
 export default Video;

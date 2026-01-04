@@ -87,14 +87,16 @@ class ProcessingQueue {
       await this.updateVideoProgress(videoId, userId, 90, 'processing');
 
       await Video.findByIdAndUpdate(videoId, {
-        status: 'safe',
+        processingStatus: 'completed',
+        sensitivityStatus: 'safe',
         processingProgress: 100,
         processedAt: new Date()
       });
 
       if (this.io) {
         emitProcessingComplete(this.io, userId, videoId, {
-          status: 'safe',
+          processingStatus: 'completed',
+          sensitivityStatus: 'safe',
           processedAt: new Date()
         });
       }
@@ -109,7 +111,7 @@ class ProcessingQueue {
         const userId = video.userId.toString();
         
         await Video.findByIdAndUpdate(videoId, {
-          status: 'failed',
+          processingStatus: 'failed',
           processingProgress: 0
         });
 
@@ -120,17 +122,17 @@ class ProcessingQueue {
     }
   }
 
-  async updateVideoProgress(videoId, userId, progress, status = null) {
+  async updateVideoProgress(videoId, userId, progress, processingStatus = null) {
     const updateData = { processingProgress: progress };
     
-    if (status) {
-      updateData.status = status;
+    if (processingStatus) {
+      updateData.processingStatus = processingStatus;
     }
 
     await Video.findByIdAndUpdate(videoId, updateData);
     
     if (this.io) {
-      emitProgressUpdate(this.io, userId, videoId, progress, status);
+      emitProgressUpdate(this.io, userId, videoId, progress, processingStatus);
     }
 
     console.log(`Video ${videoId} progress: ${progress}%`);
