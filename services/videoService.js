@@ -38,6 +38,7 @@ export const createVideo = async (userId, videoData, file) => {
       filename: file.filename,
       filePath: filePath,
       size: file.size,
+      duration: 0,
       mimeType: file.mimetype,
       processingStatus: 'pending',
       uploadedAt: new Date()
@@ -81,7 +82,7 @@ export const getVideoById = async (videoId, userId, userRole) => {
       throw new Error('Video not found');
     }
 
-    if (video.userId.toString() !== userId && userRole !== 'admin') {
+    if (video.userId.toString() !== userId.toString() && userRole !== 'admin') {
       throw new Error('Access denied to this video');
     }
     

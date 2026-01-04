@@ -24,6 +24,10 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'File size is required']
   },
+  duration: {
+    type: Number,
+    default: 0
+  },
   mimeType: {
     type: String,
     required: [true, 'MIME type is required']

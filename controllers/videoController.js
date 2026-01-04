@@ -68,9 +68,10 @@ export const getMyVideos = async (req, res, next) => {
 export const getVideo = async (req, res, next) => {
   try {
     const videoId = req.params.id;
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
+    const userRole = req.user.role;
 
-    const video = await videoService.getVideoById(videoId, userId);
+    const video = await videoService.getVideoById(videoId, userId, userRole);
 
     res.status(200).json({
       success: true,

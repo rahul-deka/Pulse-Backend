@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Video from '../models/Video.js';
 import { generateToken } from '../utils/jwt.js';
 
 // @desc    Register new user
@@ -152,6 +153,119 @@ export const updatePassword = async (req, res, next) => {
       success: true,
       message: 'Password updated successfully',
       token
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all users
+// @route   GET /api/auth/users
+// @access  Private/Admin
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select('-password').sort('-createdAt');
+
+    const usersWithVideoCounts = await Promise.all(
+      users.map(async (user) => {
+        const videoCount = await Video.countDocuments({ userId: user._id });
+        return {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+          isActive: user.isActive !== undefined ? user.isActive : true,
+          videoCount
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      count: usersWithVideoCounts.length,
+      users: usersWithVideoCounts
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user role
+// @route   PUT /api/auth/users/:id/role
+// @access  Private/Admin
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+
+    if (!role || !['admin', 'editor', 'viewer'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid role (admin, editor, or viewer)'
+      });
+    }
+
+    if (req.params.id === req.user.id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot change your own role'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'User role updated successfully',
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/auth/users/:id
+// @access  Private/Admin
+export const deleteUser = async (req, res, next) => {
+  try {
+    if (req.params.id === req.user.id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete yourself'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    await Video.deleteMany({ userId: user._id });
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'User and their videos deleted successfully'
     });
   } catch (error) {
     next(error);

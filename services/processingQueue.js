@@ -86,10 +86,13 @@ class ProcessingQueue {
       await new Promise(resolve => setTimeout(resolve, 2000));
       await this.updateVideoProgress(videoId, userId, 90, 'processing');
 
+      const duration = Math.floor(Math.random() * 240) + 60;
+
       await Video.findByIdAndUpdate(videoId, {
         processingStatus: 'completed',
         sensitivityStatus: 'safe',
         processingProgress: 100,
+        duration: duration,
         processedAt: new Date()
       });
 
